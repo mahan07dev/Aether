@@ -1,0 +1,23 @@
+device_id = "6969788a-1a37-41e3-90ed-eec7e3554942"
+access_token = "f5e7a5c3-0cf9-413e-b1e6-bd48fc8b680f"
+cert_pem = """
+-----BEGIN CERTIFICATE-----
+MIHtMIGToAMCAQICAQAwCgYIKoZIzj0EAwIwADAeFw0yNjA3MTcxMTEwMzFaFw0y
+NjA3MTgxMTEwMzFaMAAwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAARDraseGwH4
+oDsFZcjaQ2adaxUxj+lEzvugsod37WNnMGzHWNIFRyHlQR3VzpOmE491poAJym/q
+/JKNEgtqecQ0MAoGCCqGSM49BAMCA0kAMEYCIQCpZymk2PVoPb4CZyHgS6lElGhq
+zFslNhV2ycQEtB5mZwIhANmDD0APtBh1PmHEkDC9VMuNshrTjnDrl9Ak3iiDMhfR
+-----END CERTIFICATE-----
+"""
+key_pem = """
+-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgsFCS7X1KF3WaI59E
+jiYg2cTVM7rNTSneuCU4Pu/Iqo+hRANCAARDraseGwH4oDsFZcjaQ2adaxUxj+lE
+zvugsod37WNnMGzHWNIFRyHlQR3VzpOmE491poAJym/q/JKNEgtqecQ0
+-----END PRIVATE KEY-----
+"""
+ipv4 = "172.16.0.2"
+ipv6 = "2606:4700:110:8701:e55:ba25:1bcd:73fc"
+wg_private_key = "+IbWTi5jIFBpLIyDjjUp5CDgvDPlv1LNOj/3jeZwMnA="
+wg_peer_public_key = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
+client_id = "o6qZ"

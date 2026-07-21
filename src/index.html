@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Aether Control</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <div class="app-container">
+        <div class="glass-card" id="appCard">
+            <!-- Header with toggles -->
+            <header class="app-header">
+                <div class="header-icon">⚡</div>
+                <h1 data-i18n="appTitle">Aether Control</h1>
+                <div class="header-actions">
+                    <button class="icon-btn" id="themeToggle" title="Toggle theme">🌓</button>
+                    <button class="icon-btn" id="langToggle" title="Toggle language">🇬🇧</button>
+                </div>
+            </header>
+
+            <!-- Status Row -->
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label" data-i18n="installedLabel">Installed</span>
+                    <div class="status-indicator" id="installedStatus">
+                        <span class="status-dot" id="installedDot"></span>
+                        <span class="status-text" id="installedText" data-i18n="checking">Checking…</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <span class="status-label" data-i18n="connectionLabel">Connection</span>
+                    <div class="status-indicator" id="connectionStatus">
+                        <span class="status-dot" id="connectionDot"></span>
+                        <span class="status-text" id="connectionText" data-i18n="disconnected">Disconnected</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Install notice -->
+            <div class="install-notice" id="installNotice" style="display: none;">
+                <p data-i18n="installNotice1">⚠️ Aether not found. Please download the appropriate version for your OS from</p>
+                <a href="https://github.com/CluvexStudio/Aether/releases" target="_blank">GitHub Releases</a>
+                <p data-i18n="installNotice2">and place the <strong>aether</strong> folder in the same directory as this app.</p>
+            </div>
+
+            <!-- Options -->
+            <div class="options-grid">
+                <div class="option-group">
+                    <label for="protocolSelect" data-i18n="protocolLabel">Protocol</label>
+                    <select id="protocolSelect">
+                        <option value="1" data-i18n="protocolMasque">Masque</option>
+                        <option value="2" data-i18n="protocolWireguard">WireGuard</option>
+                        <option value="3" data-i18n="protocolWiw">Warp‑in‑Warp (Goo)</option>
+                    </select>
+                </div>
+
+                <div class="option-group" id="httpGroup">
+                    <label for="httpSelect" data-i18n="httpLabel">HTTP Version</label>
+                    <select id="httpSelect">
+                        <option value="1" data-i18n="http2">HTTP/2</option>
+                        <option value="2" selected data-i18n="http3">HTTP/3</option>
+                    </select>
+                </div>
+
+                <div class="option-group">
+                    <label for="speedSelect" data-i18n="speedLabel">Scan Speed</label>
+                    <select id="speedSelect">
+                        <option value="1" data-i18n="speedTurbo">1 – Turbo</option>
+                        <option value="2" selected data-i18n="speedBalanced">2 – Balanced</option>
+                        <option value="3" data-i18n="speedThorough">3 – Thorough</option>
+                        <option value="4" data-i18n="speedStealth">4 – Stealth</option>
+                    </select>
+                </div>
+
+                <div class="option-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="useLast" checked />
+                        <span data-i18n="useLastLabel">Use last successful connection</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Circle Button -->
+            <div class="circle-btn-wrapper">
+                <button class="circle-btn" id="connectBtn" disabled>
+                    <span class="btn-label" data-i18n="connect">Connect</span>
+                </button>
+            </div>
+
+            <!-- Connection Info (hidden until connected) -->
+            <div class="connection-info" id="connectionInfo" style="display: none;">
+                <div class="info-row">
+                    <span class="info-label" data-i18n="socksLabel">SOCKS5 Proxy</span>
+                    <span class="info-value" id="socksAddress">127.0.0.1:1819</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label" data-i18n="statusLabel">Status</span>
+                    <span class="info-value" id="connStatusText" data-i18n="connected">Connected</span>
+                </div>
+                <div class="user-guide">
+                    <p><strong data-i18n="guideTitle">📖 V2Ray Configuration Guide</strong></p>
+                    <p data-i18n="guideIntro">Configure your V2Ray client with the following SOCKS5 settings:</p>
+                    <ul>
+                        <li><strong data-i18n="guideAddressLabel">Address:</strong> <span id="guideAddress">127.0.0.1</span></li>
+                        <li><strong data-i18n="guidePortLabel">Port:</strong> <span id="guidePort">1819</span></li>
+                        <li><strong data-i18n="guideProtocolLabel">Protocol:</strong> SOCKS5</li>
+                        <li data-i18n="guideAuth">No authentication required.</li>
+                    </ul>
+                    <div class="config-example">
+                        <p data-i18n="guideConfigLabel">Example `config.json` for V2Ray:</p>
+                        <pre><code id="v2rayConfig">{
+  "inbounds": [
+    {
+      "protocol": "socks",
+      "settings": {
+        "auth": "noauth",
+        "udp": true,
+        "ip": "127.0.0.1",
+        "port": 1819
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {}
+    }
+  ]
+}</code></pre>
+                    </div>
+                    <p class="guide-note" data-i18n="guideNote">Set your browser or system proxy to SOCKS5 at the above address.</p>
+                </div>
+            </div>
+
+            <!-- Log Box -->
+            <div class="log-section">
+                <div class="log-header">
+                    <span class="log-title" data-i18n="logTitle">📋 Output Log</span>
+                    <span class="log-count" id="logCount">0 lines</span>
+                    <button class="btn-clear-log" id="clearLogsBtn" title="Clear Logs">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M5 6l1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="log-box" id="logBox">
+                    <div class="log-line log-system">> Aether Control ready.</div>
+                    <div class="log-line log-system">> Checking for aether…</div>
+                </div>
+            </div>
+
+<!-- Project Info & GitHub Links -->
+<div class="project-info">
+    <div class="project-description">
+        <p>
+            <strong>Aether Control</strong> is a visual desktop frontend made by <a href="https://github.com/mahan07dev" target="_blank" rel="noopener noreferrer">Mahan07dev</a> for the 
+            <a href="https://github.com/CluvexStudio/Aether" target="_blank" rel="noopener noreferrer">Aether</a> 
+            project – a powerful network tunneling and obfuscation tool. 
+            This interface simplifies the process for beginners by providing an interactive UI, 
+            real‑time status monitoring, and one‑click connection management, 
+            while the underlying Aether binary does all the heavy lifting.
+        </p>
+        <p class="credit">
+            Aether base-code is developed and maintained by <strong>CluvexStudio</strong>. 
+            This frontend application is an independent companion app made by <a href="https://github.com/mahan07dev" target="_blank" rel="noopener noreferrer">Mahan07dev</a> for those who need an easier approach.
+        </p>
+    </div>
+    <div class="github-buttons">
+        <a href="https://github.com/mahan07dev" target="_blank" rel="noopener noreferrer" class="github-btn">
+            <span class="github-icon">🐙</span> Mahan07dev
+        </a>
+        <a href="https://github.com/CluvexStudio/Aether" target="_blank" rel="noopener noreferrer" class="github-btn original">
+            <span class="github-icon">🐙</span> CluvexStudio
+        </a>
+    </div>
+</div>
+
+            <!-- Footer -->
+            <footer class="app-footer">
+                <span class="footer-text">⚡ Aether Desktop · Tauri</span>
+            </footer>
+        </div>
+    </div>
+
+    <script src="main.js" type="module"></script>
+</body>
+</html>

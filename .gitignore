@@ -1,0 +1,68 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Rust build artifacts
+/target/
+**/*.rs.bk
+*.pdb
+
+# Tauri generated files
+src-tauri/target/
+src-tauri/gen/
+dist/
+*.app
+*.dmg
+*.deb
+*.AppImage
+*.msi
+*.exe
+*.tar.gz
+
+# Node dependencies (if any)
+node_modules/
+package-lock.json
+yarn.lock
+
+# IDE folders
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Aether binary – optionally exclude it if you don't want to commit it
+# (If you plan to bundle it with the app, consider committing the folder but not the binary)
+aether/aether
+aether/aether.exe
+aether/*.log
+
+# Logs
+*.log
+
+# Environment files
+.env
