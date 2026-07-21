@@ -4,12 +4,12 @@
 )]
 
 use serde::Deserialize;
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use tauri::{Emitter, State};
+use tauri::{Emitter, Manager, State};
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
@@ -26,7 +26,11 @@ struct ConnectParams {
     use_last: bool,
 }
 
-// Helper to find aether binary
+// --------------------------------------------------------------
+// Helpers
+// --------------------------------------------------------------
+
+/// Check if `dir` contains a file named "aether" (or "aether.exe" on Windows).
 fn check_aether_in_dir(dir: &Path) -> Option<PathBuf> {
     #[cfg(windows)]
     let binary = dir.join("aether.exe");
@@ -34,21 +38,43 @@ fn check_aether_in_dir(dir: &Path) -> Option<PathBuf> {
     let binary = dir.join("aether");
 
     if binary.exists() && binary.is_file() {
-        #[cfg(unix)]
-        {
-            if let Ok(metadata) = binary.metadata() {
-                let mode = metadata.permissions().mode();
-                if mode & 0o111 == 0 {
-                    let new_mode = mode | 0o755;
-                    let _ = std::fs::set_permissions(&binary, PermissionsExt::from_mode(new_mode));
-                }
-            }
-        }
         Some(binary)
     } else {
         None
     }
 }
+
+#[cfg(unix)]
+fn ensure_executable(path: &Path) -> Result<(), String> {
+    let meta = std::fs::metadata(path)
+        .map_err(|e| format!("Failed to read metadata for {}: {}", path.display(), e))?;
+    if !meta.is_file() {
+        return Err(format!("{} is not a file", path.display()));
+    }
+
+    let mode = meta.permissions().mode();
+    if mode & 0o111 == 0 {
+        let new_perm = std::fs::Permissions::from_mode(0o755);
+        std::fs::set_permissions(path, new_perm)
+            .map_err(|e| format!("Failed to set execute permissions on {}: {}", path.display(), e))?;
+    }
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn ensure_executable(_path: &Path) -> Result<(), String> {
+    Ok(())
+}
+
+/// Get the app's data directory (user‑writable).
+fn get_app_data_dir(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
+    app_handle.path().app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))
+}
+
+// --------------------------------------------------------------
+// Tauri commands
+// --------------------------------------------------------------
 
 #[tauri::command]
 fn check_installed(app_handle: tauri::AppHandle) -> bool {
@@ -58,25 +84,30 @@ fn check_installed(app_handle: tauri::AppHandle) -> bool {
     };
 
     let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-    let cwd_path = cwd.join("aether");
-    emit_debug(&format!("Checking current dir: {}", cwd_path.display()));
-
-    if check_aether_in_dir(&cwd_path).is_some() {
-        emit_debug("Found aether in current directory.");
-        return true;
-    }
-
     let exe_path = std::env::current_exe().unwrap_or_else(|_| PathBuf::from("."));
     let exe_dir = exe_path.parent().unwrap_or(&Path::new("."));
-    emit_debug(&format!("Checking executable dir: {}", exe_dir.display()));
 
-    if check_aether_in_dir(exe_dir).is_some() {
-        emit_debug("Found aether in executable directory.");
-        return true;
+    let found = check_aether_in_dir(exe_dir)
+        .or_else(|| check_aether_in_dir(&exe_dir.join("aether")))
+        .or_else(|| check_aether_in_dir(&cwd))
+        .or_else(|| check_aether_in_dir(&cwd.join("aether")))
+        .or_else(|| {
+            get_app_data_dir(&app_handle)
+                .ok()
+                .and_then(|data_dir| {
+                    check_aether_in_dir(&data_dir)
+                        .or_else(|| check_aether_in_dir(&data_dir.join("aether")))
+                })
+        })
+        .is_some();
+
+    if found {
+        emit_debug("Found aether in executable dir, current dir, or app data dir (or their 'aether' subfolder).");
+    } else {
+        emit_debug("Aether not found in any location.");
     }
 
-    emit_debug("Aether not found in either location.");
-    false
+    found
 }
 
 #[tauri::command]
@@ -92,20 +123,51 @@ async fn connect(
         }
     }
 
+    let cwd = std::env::current_dir().map_err(|e| format!("Failed to get current dir: {}", e))?;
     let exe_path = std::env::current_exe().map_err(|e| format!("Failed to get executable path: {}", e))?;
     let exe_dir = exe_path.parent().ok_or("No parent directory")?;
+    let data_dir = get_app_data_dir(&app_handle)?;
 
-    let aether_binary = if let Some(path) = check_aether_in_dir(exe_dir) {
-        path
-    } else if let Some(path) = check_aether_in_dir(&std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))) {
-        path
-    } else {
-        let msg = "Aether binary not found. Place the 'aether' folder in the app's directory or next to the executable.";
-        let payload = serde_json::json!({ "message": msg, "level": "stderr" });
+    // Search for binary in:
+    // 1. exe_dir
+    // 2. exe_dir/aether
+    // 3. cwd
+    // 4. cwd/aether
+    // 5. data_dir
+    // 6. data_dir/aether
+    let aether_binary = check_aether_in_dir(exe_dir)
+        .or_else(|| check_aether_in_dir(&exe_dir.join("aether")))
+        .or_else(|| check_aether_in_dir(&cwd))
+        .or_else(|| check_aether_in_dir(&cwd.join("aether")))
+        .or_else(|| check_aether_in_dir(&data_dir))
+        .or_else(|| check_aether_in_dir(&data_dir.join("aether")))
+        .ok_or_else(|| {
+            let msg = "Aether binary not found. Place it in the app's directory, the current folder, or the app's data directory, optionally inside an 'aether' subfolder.";
+            let payload = serde_json::json!({ "message": msg, "level": "stderr" });
+            let _ = app_handle.emit("log", payload.to_string());
+            msg.to_string()
+        })?;
+
+    // Ensure executable permissions
+    if let Err(e) = ensure_executable(&aether_binary) {
+        let msg = format!("Cannot execute aether: {}. Try running `chmod +x {}` or move it to a user-writable location.", e, aether_binary.display());
+        let payload = serde_json::json!({ "message": &msg, "level": "stderr" });
         let _ = app_handle.emit("log", payload.to_string());
-        return Err(msg.to_string());
-    };
+        return Err(msg);
+    }
 
+    // Working directory: inside app data dir (user‑writable)
+    let work_dir = data_dir.join("aether");
+    std::fs::create_dir_all(&work_dir)
+        .map_err(|e| format!("Failed to create working directory {}: {}", work_dir.display(), e))?;
+
+    let payload = serde_json::json!({
+        "message": &format!("Aether will run with working directory: {}", work_dir.display()),
+        "level": "system"
+    });
+    let _ = app_handle.emit("log", payload.to_string());
+
+    // Build arguments
     let mut args = Vec::new();
     match params.protocol {
         1 => { /* --masque default */ }
@@ -138,8 +200,9 @@ async fn connect(
     let payload = serde_json::json!({ "message": &format!("Running: {}", cmd_display), "level": "system" });
     let _ = app_handle.emit("log", payload.to_string());
 
+    // Spawn the process
     let mut child = Command::new(&aether_binary)
-        .current_dir(aether_binary.parent().unwrap_or(Path::new(".")))
+        .current_dir(&work_dir)
         .args(&args)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -160,6 +223,7 @@ async fn connect(
         *guard = Some(child);
     }
 
+    // Output readers
     let app_handle_clone = app_handle.clone();
     thread::spawn(move || {
         let stdout_reader = BufReader::new(stdout);
@@ -241,23 +305,6 @@ fn is_running(state: State<'_, AppState>) -> bool {
     }
 }
 
-pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init()) // optional, but keep it if you want
-        .manage(AppState {
-            process: Arc::new(Mutex::new(None)),
-        })
-        .invoke_handler(tauri::generate_handler![
-            check_installed,
-            connect,
-            disconnect,
-            is_running,
-            open_url
-        ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
-}
-
 #[tauri::command]
 fn open_url(url: String) -> Result<(), String> {
     #[cfg(target_os = "windows")]
@@ -282,4 +329,21 @@ fn open_url(url: String) -> Result<(), String> {
             .map_err(|e| format!("Failed to open URL: {}", e))?;
     }
     Ok(())
+}
+
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .manage(AppState {
+            process: Arc::new(Mutex::new(None)),
+        })
+        .invoke_handler(tauri::generate_handler![
+            check_installed,
+            connect,
+            disconnect,
+            is_running,
+            open_url
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
