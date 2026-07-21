@@ -2,8 +2,6 @@
 
 **Aether Control** is a visual, beginner‑friendly desktop frontend for [Aether](https://github.com/CluvexStudio/Aether) – a powerful network tunneling and obfuscation tool. It provides a clean, interactive UI to start/stop Aether tunnels, monitor connection status, and view real‑time logs – all without touching the command line.
 
-![Aether Control Screenshot](screenshot.png)
-
 ---
 
 ## ✨ Features
@@ -26,7 +24,7 @@
 - **Windows** – `.msi` or `.exe` (NSIS installer)
 - **macOS** – `.dmg`
 
-> You can find all releases on the [Releases page](https://github.com/yourusername/yourrepo/releases).
+> You can find all releases on the [Releases page](https://github.com/mahan07dev/Aether/releases).
 
 ### Prepare the Aether binary
 
@@ -75,7 +73,12 @@ Feel free to check the issues page.
 ---
 
 ## 📸 Screenshot
-https://screenshot.png
+
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/Mahan07dev/Aether/main/screenshot.png" width="80%" alt="Screenshot">
+
+</div>
 
 ---
 

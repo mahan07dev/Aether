@@ -1,5 +1,4 @@
 # Logs
-logs
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,7 +6,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
+# Dependencies
+node_modules/
+
+# Build outputs
 dist
 dist-ssr
 *.local
@@ -23,15 +25,11 @@ dist-ssr
 *.sln
 *.sw?
 
-# Rust build artifacts
+# Rust / Tauri
 /target/
-**/*.rs.bk
-*.pdb
-
-# Tauri generated files
 src-tauri/target/
 src-tauri/gen/
-dist/
+*.pdb
 *.app
 *.dmg
 *.deb
@@ -40,29 +38,10 @@ dist/
 *.exe
 *.tar.gz
 
-# Node dependencies (if any)
-node_modules/
-package-lock.json
-yarn.lock
-
-# IDE folders
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS junk
-.DS_Store
-Thumbs.db
-
-# Aether binary – optionally exclude it if you don't want to commit it
-# (If you plan to bundle it with the app, consider committing the folder but not the binary)
+# Aether binary (keep repo small)
 aether/aether
 aether/aether.exe
 aether/*.log
 
-# Logs
-*.log
-
-# Environment files
+# Environment
 .env
