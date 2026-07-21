@@ -1,4 +1,4 @@
-name: Release
+name: Build & Upload Release Assets
 
 on:
   push:
@@ -13,29 +13,34 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  publish:
+  build:
     strategy:
       fail-fast: false
       matrix:
         include:
+          # Linux x64
           - platform: ubuntu-22.04
-            args: ""
+            target: ""
+            name: Linux
+
+          # Windows x64
           - platform: windows-latest
-            args: ""
+            target: ""
+            name: Windows
+
+          # macOS ARM64
           - platform: macos-latest
-            args: "--target x86_64-apple-darwin"
-          - platform: macos-latest
-            args: "--target aarch64-apple-darwin"
+            target: "--target aarch64-apple-darwin"
+            name: macOS
 
     runs-on: ${{ matrix.platform }}
-
     timeout-minutes: 45
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -43,8 +48,11 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: |
+            aarch64-apple-darwin
 
-      - name: Rust Cache
+      - name: Cache Rust
         uses: Swatinem/rust-cache@v2
 
       - name: Install Linux dependencies
@@ -57,19 +65,19 @@ jobs:
             librsvg2-dev \
             patchelf
 
-      - name: Install frontend dependencies
+      - name: Install Node dependencies
         run: npm ci
 
-      - name: Build & Publish
+      - name: Build & Upload
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: "Aether ${{ github.ref_name }}"
+          releaseName: Aether Desktop ${{ github.ref_name }}
           releaseBody: |
-            Automatic release for ${{ github.ref_name }}.
+            Release ${{ github.ref_name }}
           releaseDraft: false
           prerelease: false
           includeUpdaterJson: true
-          args: ${{ matrix.args }}
+          args: ${{ matrix.target }}
