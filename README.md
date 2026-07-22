@@ -48,8 +48,9 @@ Download the appropriate Aether binary for your OS from the [original Aether rep
 ### Clone and build
 
 ```bash
-git clone https://github.com/yourusername/yourrepo.git
-cd yourrepo
+git clone
+https://github.com/mahan07dev/Aether.git
+cd Aether
 cargo tauri build
 ```
 The installers will be placed in src-tauri/target/release/bundle/.
