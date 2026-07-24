@@ -1,6 +1,6 @@
-# ⚡ Aether Control
+# ⚡ Aether Application
 
-**Aether Control** is a visual, beginner‑friendly desktop frontend for [Aether](https://github.com/CluvexStudio/Aether) – a powerful network tunneling and obfuscation tool. It provides a clean, interactive UI to start/stop Aether tunnels, monitor connection status, and view real‑time logs – all without touching the command line.
+**Aether Application** is a visual, beginner‑friendly desktop frontend for [Aether](https://github.com/CluvexStudio/Aether) – a powerful network tunneling and obfuscation tool. It provides a clean, interactive UI to start/stop Aether tunnels, monitor connection status, and view real‑time logs – all without touching the command line.
 
 ---
 
@@ -28,10 +28,12 @@
 
 ### Prepare the Aether binary
 
-Aether Control requires the **`aether` binary** to be placed in a folder named `aether` **in the same directory as the application** (or next to the executable).  
+Aether Application requires the **`aether` binary** to be placed in a folder named `aether` **in the same directory as the application** (or next to the executable).  
 Download the appropriate Aether binary for your OS from the [original Aether repository](https://github.com/CluvexStudio/Aether/releases) and extract it into the `aether/` folder.
 
 > The app will automatically check the current working directory and the executable directory for the `aether` folder.
+
+> "⚠️ Note: The Aether binary is the intellectual property of CluvexStudio and is governed by the AGPL-3.0 license. By downloading it, you agree to their terms."
 
 ---
 
@@ -46,8 +48,9 @@ Download the appropriate Aether binary for your OS from the [original Aether rep
 ### Clone and build
 
 ```bash
-git clone https://github.com/yourusername/yourrepo.git
-cd yourrepo
+git clone
+https://github.com/mahan07dev/Aether.git
+cd Aether
 cargo tauri build
 ```
 The installers will be placed in src-tauri/target/release/bundle/.
@@ -57,12 +60,14 @@ The installers will be placed in src-tauri/target/release/bundle/.
 ## 🧑‍💻 Credits
 
 - **Aether** – developed and maintained by [CluvexStudio](https://github.com/CluvexStudio/Aether). All the network‑tunneling intelligence comes from their work.
-- **Aether Control** – frontend UI and integration built with ❤️ by [Mahan07dev](https://github.com/mahan07dev).
+- **Aether Application** – frontend UI and integration built with ❤️ by [Mahan07dev](https://github.com/mahan07dev).
 
 ---
 
 ## 📄 License
-This project is licensed under the MIT License – see the LICENSE file for details.
+
+- **Aether Application** (this UI, all code in this repository) is licensed under the MIT License – see the LICENSE file for details.
+- **Aether** (the underlying tunneling binary) is a separate project developed by CluvexStudio and is licensed under the GNU AGPL-3.0. It is not distributed with this software; users must download it separately from the [official Aether repository]((https://github.com/CluvexStudio/Aether)). Please comply with their license when using their binary.
 
 ---
 
