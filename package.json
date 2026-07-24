@@ -1,11 +1,35 @@
 {
   "name": "aether-desktop",
+  "version": "1.2.0",
+  "description": "A modern desktop app to use aether tunneling program easier.",
+  "author": "Mahan07dev",
+  "license": "MIT",
   "private": true,
-  "version": "0.1.0",
   "type": "module",
+
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mahan07dev/Aether"
+  },
+
+  "homepage": "https://github.com/mahan07dev/Aether",
+
+  "bugs": {
+    "url": "https://github.com/mahan07dev/Aether/issues"
+  },
+
+  "keywords": [
+    "tauri",
+    "aether-desktop",
+    "desktop",
+    "tunnel",
+    "rust"
+  ],
+
   "scripts": {
     "tauri": "tauri"
   },
+
   "devDependencies": {
     "@tauri-apps/cli": "^2"
   }
